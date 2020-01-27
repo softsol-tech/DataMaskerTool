@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Data Masking</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet"
+	href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+	integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+	crossorigin="anonymous">
+
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script
+	src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<style>
+.navbar-default {
+	background-color: #ffffff;
+	border-color: #ffffff;
+}
+
+.container {
+	background-color: #fff;
+	padding: 40px 80px;
+	border-radius: 8px;
+	box-shadow: 0px 0px 24.08px 3.92px rgba(0, 0, 0, 0.25);
+}
+
+#browseBtn {
+	border: 1px solid #d7d1d1;
+}
+</style>
+</head>
+<body>
+	<nav class="navbar navbar-default navbar-fixed-top">
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<a class="navbar-brand" href="#"><img src="images/FS-new.jpg"
+					alt="Flatirons Logo" width="150px" height="40px" /></a>
+			</div>
+
+		</div>
+	</nav>
+	<div class="container" style="margin-top: 100px; text-align: center;">
+		<h1>XML PayLoad Masker Tool</h1>
+		<br /> <br />
+		<div class="row">
+			<div class="col-lg-2" style="text-align: left;"></div>
+			<div class="col-lg-8" style="text-align: left;">
+				<label>Upload ZIP File</label>
+				<div class="custom-file">
+					<input type="file" class="custom-file-input" id="browseBtn"
+						aria-describedby="inputGroupFileAddon04"> <label
+						class="custom-file-label" for="browseBtn">Choose file</label>
+				</div>
+				<br />
+			</div>
+			<div class="col-lg-2" style="text-align: left;"></div>
+		</div>
+
+		<div class="row" style="margin-top: 2em">
+			<div class="col-lg-2" style="text-align: left;"></div>
+			<div class="col-lg-8" style="text-align: center;">
+				<button type="button" class="btn btn-primary btn-lg" id="upload"
+					disabled>Upload</button>
+
+				<a href="#" target="_blank" class="btn btn-success btn-lg"
+					role="button" id="download">Download</a>
+				<button type="button" class="btn btn-secondary btn-lg" id="reset">Reset</button>
+			</div>
+			<div class="col-lg-2" style="text-align: left;"></div>
+
+		</div>
+
+		<div class="row" style="margin-top: 2em">
+			<div class="col-lg-12" style="text-align: center;">
+				<div class="alert alert-success" role="alert" id="statusMsg"></div>
+			</div>
+		</div>
+	</div>
+</body>
+
+<script>
+	$(document).ready(function() {
+		init();
+
+		$("#upload").click(function() {
+			upload();
+		});
+		$("#download").click(function() {
+			download();
+
+		});
+		$("#reset").click(function() {
+			init();
+
+		});
+		$("#browseBtn").change(function() {
+			$('#statusMsg').text('');
+			$('#statusMsg').hide();
+			$('#upload').attr("disabled", false);
+			$('#download').addClass('disabled');
+		});
+
+	});
+
+	document
+			.querySelector('.custom-file-input')
+			.addEventListener(
+					'change',
+					function(e) {
+						var fileName = document.getElementById("browseBtn").files[0].name;
+						var nextSibling = e.target.nextElementSibling
+						nextSibling.innerText = fileName
+					})
+
+	function upload() {
+		$('#statusMsg').text('Uploading . . . ');
+		var files = $('#browseBtn').prop('files');
+		if (files.length > 0) {
+			var formdata = new FormData();
+			var file = files[0];
+			if (!file.type.includes('zip-compressed')) {
+				showError('File Type Not Supported,It’s not a Zip File.');
+				return;
+			}
+
+			formdata.append("file", file);
+			jQuery
+					.ajax({
+						url : "mask/xml/upload/",
+						type : "POST",
+						data : formdata,
+						processData : false,
+						contentType : false,
+						success : function(response) {
+							console.log(response);
+							showSuccess("Uploaded and Processed Successfully!! Click Download to get the masked file.");
+							$('#download').attr("href",
+									response.fileDownloadUri);
+							$('#download').removeClass("disabled");
+							$('#upload').attr("disabled", true);
+
+							// process response
+						},
+						error : function(error) {
+							showError("Error while uploading/processing file . . .");
+
+							console.log(error);
+						}
+					});
+		} else {
+			$('#statusMsg').text('Select the file');
+		}
+
+	}
+
+	function download() {
+
+		$.fileDownload($(this).attr('href'), {
+			successCallback : function(url) {
+				$('#statusMsg').text("File downloaded sccessfully");
+			},
+			failCallback : function(responseHtml, url) {
+				$('#statusMsg').text("Failed to download..");
+			}
+		});
+		return false; //this is critical to stop the click event which will trigger a normal file download!
+	}
+
+	function init() {
+		$("#statusMsg").hide();
+		$('#statusMsg').text('');
+		$('#upload').attr("disabled", true);
+		$('#download').addClass("disabled");
+		$('#browseBtn').val('');
+		$('.custom-file-label').text('Choose file');
+	}
+
+	function showError(message) {
+		$("#statusMsg").removeClass('alert-success');
+		$("#statusMsg").addClass('alert-danger');
+		$("#statusMsg").show();
+		$('#statusMsg').text(message);
+
+	}
+	function showSuccess(message) {
+		$("#statusMsg").removeClass('alert-danger');
+		$("#statusMsg").addClass('alert-success');
+		$("#statusMsg").show();
+		$('#statusMsg').text(message);
+	}
+</script>
+</html>
