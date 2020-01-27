@@ -53,3 +53,24 @@ Input for the tool:
 Output :
 
     A Compressed Zip File with the Masked XML and image files
+    
+Few Properties to configure in application.properties:
+-----------------------------------------------------
+masker.upload-dir - Location where uploaded files will be stored (Must be configured)
+masker.ignore-xmlelement - elements will be ignored by the tool
+
+masker.enable-attributemask - Flag to enable attribute masking
+masker.ignore-xmlattribute -  attributes will ignored by the tool (Only works if property masker.enable-attributemask set to true)
+
+masker.imagemask.enabled - Flag to enable image masking
+masker.imagemask.converter.path - Installed ImageMagick application path
+masker.imagemask.supported-formats - list of image formats wants to mask (Only works if property masker.imagemask.enabled set to true)
+
+
+Once server started succesfully
+Open the Browser 
+Access the below URL
+http://localhost:8181/payloadmasker/index.html
+
+Note: Only zip file allowed to upload
+
